@@ -1,0 +1,61 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: MYSQL_DATABASE
+              value: test
+            - name: MYSQL_USER
+              value: test
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  if mysql -uroot -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'; then
+                    exit 0
+                  else
+                    exit 1
+                  fi
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  if mysql -uroot -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'; then
+                    exit 0
+                  else
+                    exit 1
+                  fi
+            initialDelaySeconds: 60
+            periodSeconds: 20

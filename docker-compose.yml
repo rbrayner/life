@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks:
+      - life_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/posts"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: mariadb:5.5
+    platform: linux/amd64
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      MYSQL_ROOT_PASSWORD: test
+    volumes:
+      - life_db_data:/var/lib/mysql
+    networks:
+      - life_network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h db -u test -ptest"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  life_db_data:
+
+networks:
+  life_network:
+    driver: bridge
