@@ -4,4 +4,5 @@ src/**/*.js.map
 
 .env
 k8s/app/deploy.yml
+k8s/app/secrets.yml
 k8s/db/secrets.yml

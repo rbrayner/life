@@ -12,6 +12,8 @@ spec:
       labels:
         app: life
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: app
           image: ${IMAGE_NAME}:${IMAGE_VERSION}
