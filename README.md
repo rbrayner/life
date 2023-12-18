@@ -17,15 +17,17 @@
 - `make` command is installed
 - `curl` command is installed
 - `base64` command is installed
+- `jq` command is installed
 - `docker` command is installed with buildx support
 - a docker hub account with an access token created
 
 ## 2. Create a .env file
 
-Create a `.env` file with the access token secret from docker hub:
+Create a `.env` file with the access token secret and username from docker hub:
 
 ```shell
-DOCKER_HUB_ACCESS_CODE=dckr_xxxxxxxxxxxxxxxxxxxxxxx
+DOCKER_HUB_ACCESS_CODE=<docker-hub-access-code>
+DOCKER_HUB_USERNAME=<docker-hub-username>
 DB_PASSWORD_BASE64=<your-database-password-in-base64-encoding>
 ```
 
@@ -33,7 +35,6 @@ For `DB_PASSWORD_BASE64`, use the value `dGVzdA==` for this lab. This is the pas
 ```shell
 echo -n 'test' |base64
 ```
-
 
 ## 3. Local deployment (with docker)
 
@@ -54,6 +55,8 @@ To stop the local containers, run the following command:
 ```shell
 make down
 ```
+
+This deployment will push a container image ([click here](https://hub.docker.com/r/rbrayner/life/tags)) to docker hub.
 
 ## 4. kubernetes deployment (using local kind cluster)
 
@@ -76,6 +79,7 @@ make test-k8s
 ```shell
 make start-cluster
 make build-and-push version=<desired-app-version>
+make create-private-registry-secret
 make deploy version=<desired-app-version>
 ```
 

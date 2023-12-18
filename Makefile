@@ -30,6 +30,7 @@ all-k8s: ## Run k8s deployment
 	@$(call check_version)
 	@$(MAKE) start-cluster
 	@$(MAKE) build-and-push version=$(version)
+	@$(MAKE) create-private-registry-secret
 	@$(MAKE) deploy version=$(version)
 
 wipe: ## Wipe the clusters and containers
@@ -65,6 +66,12 @@ build-and-push: ## Build the image and push to docker hub
 	@docker buildx create --name builder || true
 	@docker buildx use builder
 	@docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_NAME):$(version) --push .
+
+create-private-registry-secret:
+	@TOKEN=$$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "$(DOCKER_HUB_USERNAME)", "password": "$(DOCKER_HUB_ACCESS_CODE)"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && \
+		DOCKER_CONFIG=$$(echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"token\",\"password\":\"$$TOKEN\"}}}" | base64) && \
+		export BASE64_REGISTRY_CONFIG=$$(echo $$DOCKER_CONFIG) && \
+		envsubst < k8s/app/secrets.tpl > k8s/app/secrets.yml
 
 
 
