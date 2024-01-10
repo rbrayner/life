@@ -68,11 +68,18 @@ build-and-push: ## Build the image and push to docker hub
 	@docker buildx build --platform linux/amd64,linux/arm64 -t $(IMAGE_NAME):$(version) --push .
 
 create-private-registry-secret:
-	@TOKEN=$$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "$(DOCKER_HUB_USERNAME)", "password": "$(DOCKER_HUB_ACCESS_CODE)"}' https://hub.docker.com/v2/users/login/ | jq -r .token) && \
-		DOCKER_CONFIG=$$(echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"token\",\"password\":\"$$TOKEN\"}}}" | base64) && \
+	@TOKEN=$$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "$(DOCKER_HUB_USERNAME)", "password": "$(DOCKER_HUB_ACCESS_CODE)"}' https://hub.docker.com/v2/users/login/ |jq -r .token) && \
+		DOCKER_CONFIG=$$(echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"username\":\"token\",\"password\":\"$$TOKEN\"}}}" | base64 -b 0) && \
 		export BASE64_REGISTRY_CONFIG=$$(echo $$DOCKER_CONFIG) && \
 		envsubst < k8s/app/secrets.tpl > k8s/app/secrets.yml
 
+
+# kubectl create secret docker-registry regcred \
+#     --docker-server=https://index.docker.io/v1/ \
+#     --docker-username=YOUR_USERNAME \
+#     --docker-password=$TOKEN \
+#     --docker-email=your@email.com \
+#     --namespace=your_namespace
 
 
 ################# KUBERNETES DEPLOY #################
@@ -120,7 +127,7 @@ install-nginx-ingress-controller: ## Installs nginx ingress controller
 	@kubectl wait --namespace ingress-nginx \
 		--for=condition=ready pod \
 		--selector=app.kubernetes.io/component=controller \
-		--timeout=90s
+		--timeout=120s
 
 stop-cluster: ## Destroy the kind cluster
 	@kind delete cluster --name life
