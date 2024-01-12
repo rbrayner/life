@@ -12,9 +12,12 @@ spec:
       labels:
         app: life
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: app
           image: ${IMAGE_NAME}:${IMAGE_VERSION}
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           readinessProbe:
